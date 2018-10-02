@@ -4,6 +4,22 @@ JOURNAL_KEY_PREFIX = "JOURNAL_"
 
 
 class ExtendedJournalHandler(JournalHandler):
+    def __init__(self, *args, **kwargs):
+        """logging.config.fileConfig does not support kwargs
+
+        see https://bugs.python.org/issue31080
+
+        so let's use last args parameter to update kwargs dict
+        and we still can use args to pass positional arguments
+
+        [handler_journal]
+        class = ExtendedJournalHandler.ExtendedJournalHandler
+        args = (INFO, {"SYSLOG_IDENTIFIER":"my-cool-app"})
+        """
+        if args and isinstance(args[-1], dict):
+            kwargs.update(args[-1])
+            args = args[:-1]
+        super(ExtendedJournalHandler, self).__init__(*args, **kwargs)
 
     def emit(self, record):
         """Write record as journal event.
